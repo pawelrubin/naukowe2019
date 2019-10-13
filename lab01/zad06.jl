@@ -1,8 +1,8 @@
-function f(x)
+function f(x) # odejmowanie bliskich wartosci
     sqrt(x^2 + one(Float64)) - one(Float64)    
 end
 
-function g(x)
+function g(x) 
     x^2 / (sqrt(x^2 + one(Float64)) + one(Float64))
 end
 
