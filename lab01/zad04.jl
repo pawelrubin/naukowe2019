@@ -1,3 +1,5 @@
+# Author: Paweł Rubin
+
 function find_frantic_number(start)
     num = start(Float64)
     while nextfloat(num) * (one(Float64) / nextfloat(num)) == one(Float64)

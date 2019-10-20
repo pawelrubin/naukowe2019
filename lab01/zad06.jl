@@ -1,3 +1,5 @@
+# Author: Paweł Rubin
+
 function f(x) # odejmowanie bliskich wartosci
     sqrt(x^2 + 1) - 1    
 end

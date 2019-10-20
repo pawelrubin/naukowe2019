@@ -1,3 +1,5 @@
+# Author: Paweł Rubin
+
 function derivative(f, x0, h)
     return (f(x0 + h) - f(x0)) / h
 end

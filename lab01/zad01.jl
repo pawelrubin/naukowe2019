@@ -1,3 +1,5 @@
+# Author: Paweł Rubin
+
 TYPES = [Float16, Float32, Float64]
 
 function get_machine_epsilon(type::Type)
