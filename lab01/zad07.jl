@@ -1,18 +1,18 @@
-function derivative(f, x0, h, type)
-    return (f(type(x0) + type(h)) - f(type(x0))) / type(h)
+function derivative(f, x0, h)
+    return (f(x0 + h) - f(x0)) / h
 end
 
-function test_derivative(type)
+function test_derivative()
     f(x) = sin(x) + cos(3*x)
     df = 0.11694228168853805
     for i = 1:54
-        rd_df = derivative(f, one(type), type(2.0^(-i)), type)
+        h = 2.0^(-i)
+        rd_df = derivative(f, one(Float64), h)
         err = abs(df - rd_df)
         println(
-            "h = 2^$i ",
-            "rd(f'(x)) = $rd_df vs $df | err = $err"
+            "\$2^{-$i}\$ & ", one(Float64) + h, " & $rd_df & $err \\\\ \\hline"
         )
     end
 end
 
-test_derivative(Float64)
+test_derivative()
