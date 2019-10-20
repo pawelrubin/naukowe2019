@@ -1,5 +1,7 @@
 # Author: Paweł Rubin
 
+# Calculates spread for a given interval if numbers in the interval are spread evenly
+# Returns nothing otherwise
 function get_spread(a :: Float64, b :: Float64)
     a_exponent = SubString(bitstring(a), 2:12)
     prev_b_exponent = SubString(bitstring(prevfloat(b)), 2:12)

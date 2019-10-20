@@ -1,5 +1,6 @@
 # Author: Paweł Rubin
 
+# Calculates derivative of a given function in a given point with a given precision
 function derivative(f, x0, h)
     return (f(x0 + h) - f(x0)) / h
 end

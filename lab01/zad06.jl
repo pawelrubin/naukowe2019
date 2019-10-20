@@ -1,6 +1,6 @@
 # Author: Paweł Rubin
 
-function f(x) # odejmowanie bliskich wartosci
+function f(x)
     sqrt(x^2 + 1) - 1    
 end
 
