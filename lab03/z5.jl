@@ -10,7 +10,7 @@ epsilon = 10^(-4)
 f_g(x) = f(x) - g(x)
 
 a, b = 0.5, 1.0
-println(join(methods.mbisekcji(f_g, a, b, delta, epsilon), " & "), " \\\\ \\hline")
+println(join(bisection(f_g, a, b, delta, epsilon), " & "), " \\\\ \\hline")
 
 a, b = 1.0, 2.0
-println(join(methods.mbisekcji(f_g, a, b, delta, epsilon), " & "), " \\\\ \\hline")
+println(join(bisection(f_g, a, b, delta, epsilon), " & "), " \\\\ \\hline")

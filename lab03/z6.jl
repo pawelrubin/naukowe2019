@@ -28,25 +28,31 @@ euler_params_f1 = [
 
 println("bisection")
 foreach(bis_params ->
-    println(join((bis_params[1:3]..., methods.mbisekcji(bis_params...)...), " & "), " \\\\ \\hline"),
+    println(join((bis_params[1:3]..., bisection(bis_params...)...), " & "), " \\\\ \\hline"),
     bisection_params_f1
 )
 
 println("newton")
 foreach(new_params ->
-    println(join((new_params[1:3]..., methods.mstycznych(new_params...)...), " & "), " \\\\ \\hline"),
+    println(join((new_params[1:3]..., newton(new_params...)...), " & "), " \\\\ \\hline"),
     newton_params_f1
 )
 
 println("euler")
 foreach(eul_params ->
-    println(join((eul_params[1:3]..., methods.msiecznych(eul_params...)...), " & "), " \\\\ \\hline"),
+    println(join((eul_params[1:3]..., euler(eul_params...)...), " & "), " \\\\ \\hline"),
     euler_params_f1
 )
 
 println(
     "newton experiments:\n",
-    "f1, x0 > 1 := 1.2 & ", join(methods.mstycznych(f1, pf1, 1.2, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
-    "f2, x0 > 1 := 1.2 & ", join(methods.mstycznych(f2, pf2, 1.2, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
-    "f2, x0 = 1.0 ->   & ", join(methods.mstycznych(f2, pf2, 1.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n"
+    "f1 & 1.2 & ", join(newton(f1, pf1, 1.2, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f1 & 2.0 & ", join(newton(f1, pf1, 2.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f1 & 5.0 & ", join(newton(f1, pf1, 5.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f2 & 1.2 & ", join(newton(f2, pf2, 1.2, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f2 & 2.0 & ", join(newton(f2, pf2, 2.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f2 & 5.0 & ", join(newton(f2, pf2, 5.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",
+    "f2 & 1.0 & ", join(newton(f2, pf2, 1.0, delta, epsilon, maxit), " & "), " \\\\ \\hline\n",    
 )
+
+

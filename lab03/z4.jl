@@ -10,9 +10,9 @@ epsilon = 10^(-5) / 2
 maxit = 20
 
 results = [
-    methods.mbisekcji(f, 1.5, 2.0, delta, epsilon),
-    methods.mstycznych(f, pf, 1.5, delta, epsilon, maxit),
-    methods.msiecznych(f, 1.0, 2.0, delta, epsilon, maxit)
+    bisection(f, 1.5, 2.0, delta, epsilon),
+    newton(f, pf, 1.5, delta, epsilon, maxit),
+    euler(f, 1.0, 2.0, delta, epsilon, maxit)
 ]
 
 foreach(result -> println(join(result, " & "), " \\\\ \\hline"), results)
