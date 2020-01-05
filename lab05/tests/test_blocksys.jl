@@ -1,7 +1,9 @@
 include("../blocksys.jl")
 include("../io_handler.jl")
+include("../utils.jl")
 using .blocksys
 using .IOHandler
+using .Utils
 
 using Test
 
@@ -19,7 +21,7 @@ function testSolvers(solvers)
     end
 
     foreach(solver -> 
-        @testset "$solver" begin
+        @testset "$(getFunctionName(solver))" begin
             foreach(test -> 
                 @test isapprox(solver(test...), ones(Float64, test[3]))
             , testData)

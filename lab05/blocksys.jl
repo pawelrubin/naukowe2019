@@ -1,10 +1,10 @@
 module blocksys
-export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU
+export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU, calculateRightSide
 
 using SparseArrays
 
 
-function calculateRightSide(M::SparseMatrixCSC{Float64,Int}, n::Int, l::Int)
+function calculateRightSide(M::SparseMatrixCSC{Float64,Int64}, n::Int64, l::Int64)
     b = zeros(Float64, n)
 
     for i in 1 : n
