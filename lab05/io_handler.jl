@@ -1,8 +1,8 @@
 module IOHandler
-export readMatrixFromFile, readVectorFromFile
+export readMatrixFromFile, readVectorFromFile, writeVectorToFile
 
 using SparseArrays
-
+using DelimitedFiles
 
 """
 Reads matrix from file.
@@ -43,6 +43,13 @@ function readVectorFromFile(file::IOStream)
     end
 
     return b    
+end
+
+"""
+Writes vector to file.
+"""
+function writeVectorToFile(filename::String, vector::Vector{Float64})
+    writedlm(filename, vector, "\n")
 end
 
 end
