@@ -1,5 +1,5 @@
 module blocksys
-export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU
+export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU
 
 using SparseArrays
 
@@ -58,12 +58,12 @@ Input
 function gaussPivoted!(M!::SparseMatrixCSC{Float64, Int64}, b!::Vector{Float64}, n::Int64, l::Int64)
     perm = collect(1 : n)
 
-    # i_n
+    # columns
     for k in 1 : n - 1
         maxInColValue = 0
         maxInColIndex = 0
 
-        # j_n
+        # rows
         for i in k : min(n, k + l + 1)
             if abs(M![perm[i], k]) > maxInColValue
                 maxInColValue = abs(M![perm[i], k])
@@ -89,6 +89,8 @@ function gaussPivoted!(M!::SparseMatrixCSC{Float64, Int64}, b!::Vector{Float64},
 end
 
 """
+Generates LU decomposition with Gauss elimination.
+
 Input
     M! - sparce matrix
     n - matrix size
@@ -114,6 +116,55 @@ function gaussLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
     end
     L[n, n] = 1
     return L, U
+end
+
+"""
+Generates LU decomposition with pivoted Gauss elimination.
+
+Input
+    M! - sparce matrix
+    n - matrix size
+    l - block size
+
+Output
+    L, U - lower triangular and upper triangular matrices 
+    perm - permutations array
+"""
+function gaussPivotedLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
+    U = copy(M)
+    L = spzeros(n, n)
+
+    perm = collect(1 : n)
+
+    # columns
+    for k in 1 : n - 1
+        maxInColValue = 0
+        maxInColIndex = 0
+
+        # rows
+        for i in k : min(n, k + l + 1)
+            if abs(U[perm[i], k]) > maxInColValue
+                maxInColValue = abs(U[perm[i], k])
+                maxInColIndex = i
+            end
+        end
+        
+        # swap 
+        perm[maxInColIndex], perm[k] = perm[k], perm[maxInColIndex]
+
+        for i in k + 1 : min(n, k + l + 1)
+            z = U[perm[i], k] / U[perm[k], k]
+
+            L[perm[i], k] = z
+            U[perm[i], k] = 0.0
+
+            for j in k + 1 : min(n, k + 2 * l)
+                U[perm[i], j] -= z * U[perm[k], j]
+            end
+        end
+    end
+
+    return L, U, perm
 end
 
 """
@@ -146,7 +197,7 @@ end
 
 
 """
-Solves Ax=b with Gauss elimination
+Solves Ax=b with Pivoted Gauss elimination
 
 Input:
     M - sparce matrix
@@ -182,6 +233,18 @@ function solveWithPivotedGauss(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Flo
 end
 
 
+"""
+Solves Ax=b with Gauss elimination and LU decomposition.
+
+Input:
+    M - sparce matrix
+    b - right side Vector
+    n - matrix size
+    l - block size
+
+Output
+    x_n - result Vector
+"""
 function solveWithGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}, n::Int64, l::Int64)
     L, U = gaussLU(M, n, l)
         
@@ -196,11 +259,48 @@ function solveWithGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}
     
     # Ux = z
     for i in n : -1 : 1
-        sum = 0
+        x_i = 0
         for j in i + 1 : min(n, i + l)
-            sum += U[i, j] * x_n[j]
+            x_i += U[i, j] * x_n[j]
         end
-        x_n[i] = (b[i] - sum) / U[i, i]
+        x_n[i] = (b[i] - x_i) / U[i, i]
+    end
+
+    return x_n
+end
+
+
+"""
+Solves Ax=b with Pivoted Gauss elimination and LU decomposition.
+
+Input:
+    M - sparce matrix
+    b - right side Vector
+    n - matrix size
+    l - block size
+
+Output
+    x_n - result Vector
+"""
+function solveWithPivotedGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}, n::Int64, l::Int64)
+    L, U, perm = gaussPivotedLU(M, n, l)
+    
+    x_n = zeros(Float64, n)
+
+    # Lz = Pb
+    for k in 1 : n - 1
+        for i in k + 1 : min(n, k + l + 1)
+            b[perm[i]] -= L[perm[i], k] * b[perm[k]]
+        end
+    end
+    
+    # Ux = z
+    for i in n : -1 : 1
+        x_i = 0
+        for j in i + 1 : min(n, i + 2 * l)
+            x_i += U[perm[i], j] * x_n[j]
+        end
+        x_n[i] = (b[perm[i]] - x_i) / U[perm[i], i]
     end
 
     return x_n

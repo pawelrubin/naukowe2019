@@ -27,6 +27,6 @@ function testSolvers(solvers)
     , solvers)
 end
 
-solvers = [solveWithGauss, solveWithPivotedGauss, solveWithGaussLU]
+solvers = [solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU]
 
 testSolvers(solvers)
