@@ -1,7 +1,20 @@
 module blocksys
-export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss
+export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU
 
 using SparseArrays
+
+
+function calculateRightSide(M::SparseMatrixCSC{Float64,Int}, n::Int, l::Int)
+    b = zeros(Float64, n)
+
+    for i in 1 : n
+        for j in max(1, i - (2 + l)) : min(n, i + l)
+            b[i] += M[i, j]
+        end
+    end
+        
+    return b
+end
 
 
 """
@@ -75,6 +88,33 @@ function gaussPivoted!(M!::SparseMatrixCSC{Float64, Int64}, b!::Vector{Float64},
     return perm
 end
 
+"""
+Input
+    M! - sparce matrix
+    n - matrix size
+    l - block size
+
+Output
+    L, U - lower triangular and upper triangular matrices 
+"""
+function gaussLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
+    U = copy(M)
+    L = spzeros(n, n)
+
+    for k in 1 : n - 1
+        L[k, k] = 1.0
+        for i in k + 1 : min(n, k + l + 1)
+            z = U[i, k] / U[k, k]
+            L[i, k] = z 
+            U[i, k] = 0.0
+            for j in k + 1 : min(n, k + l)
+                U[i, j] -=  z * U[k, j]
+            end
+        end
+    end
+    L[n, n] = 1
+    return L, U
+end
 
 """
 Solves Ax=b with Gauss elimination
@@ -136,6 +176,31 @@ function solveWithPivotedGauss(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Flo
             x_i += M[perm[i], j] * x_n[j]
         end
         x_n[i] = (b[perm[i]] - x_i) / M[perm[i], i]
+    end
+
+    return x_n
+end
+
+
+function solveWithGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}, n::Int64, l::Int64)
+    L, U = gaussLU(M, n, l)
+        
+    x_n = zeros(Float64, n)
+
+    # Lz = b
+    for k in 1 : n - 1
+        for i in k + 1 : min(n, k + l + 1)
+            b[i] -= L[i, k] * b[k]
+        end
+    end
+    
+    # Ux = z
+    for i in n : -1 : 1
+        sum = 0
+        for j in i + 1 : min(n, i + l)
+            sum += U[i, j] * x_n[j]
+        end
+        x_n[i] = (b[i] - sum) / U[i, i]
     end
 
     return x_n
