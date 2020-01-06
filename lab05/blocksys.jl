@@ -1,8 +1,9 @@
 module blocksys
-export gauss!, gaussPivoted!, solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU, calculateRightSide
+export solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU
+export calculateRightSide
+export solvers
 
 using SparseArrays
-
 
 function calculateRightSide(M::SparseMatrixCSC{Float64,Int64}, n::Int64, l::Int64)
     b = zeros(Float64, n)
@@ -305,5 +306,7 @@ function solveWithPivotedGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{F
 
     return x_n
 end
+
+solvers = [solveWithGauss, solveWithPivotedGauss, solveWithGaussLU, solveWithPivotedGaussLU]
 
 end
