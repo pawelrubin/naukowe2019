@@ -29,15 +29,11 @@ Input
 """
 function gauss!(M!::SparseMatrixCSC{Float64, Int64}, b!::Vector{Float64}, n::Int64, l::Int64)
     for k in 1 : n -1
-        last_row = min(n, k + l + 1)
-        last_col = min(n, k + l + 1)
-        # last_col = min(n, k + l + k % l + 2)
-
-        for i in k + 1 : last_row
+        for i in k + 1 : min(n, k + l + 1)
             z = M![i, k] / M![k, k]
             M![i, k] = 0.0
 
-            for col in k + 1 : last_col
+            for col in k + 1 : min(n, k + l + 1)
                 M![i, col] -= z * M![k, col]
             end
             
@@ -98,25 +94,26 @@ Input
     l - block size
 
 Output
-    L, U - lower triangular and upper triangular matrices 
+    L - lower triangular matrix
 """
-function gaussLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
-    U = copy(M)
+function gaussLU!(M!::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
     L = spzeros(n, n)
 
     for k in 1 : n - 1
         L[k, k] = 1.0
         for i in k + 1 : min(n, k + l + 1)
-            z = U[i, k] / U[k, k]
+            z = M![i, k] / M![k, k]
             L[i, k] = z 
-            U[i, k] = 0.0
+            M![i, k] = 0.0
             for j in k + 1 : min(n, k + l)
-                U[i, j] -=  z * U[k, j]
+                M![i, j] -=  z * M![k, j]
             end
         end
     end
+    
     L[n, n] = 1
-    return L, U
+    
+    return L
 end
 
 """
@@ -128,11 +125,10 @@ Input
     l - block size
 
 Output
-    L, U - lower triangular and upper triangular matrices 
+    L - lower triangular matrix
     perm - permutations array
 """
-function gaussPivotedLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
-    U = copy(M)
+function gaussPivotedLU!(M!::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
     L = spzeros(n, n)
 
     perm = collect(1 : n)
@@ -144,8 +140,8 @@ function gaussPivotedLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
 
         # rows
         for i in k : min(n, k + l + 1)
-            if abs(U[perm[i], k]) > maxInColValue
-                maxInColValue = abs(U[perm[i], k])
+            if abs(M![perm[i], k]) > maxInColValue
+                maxInColValue = abs(M![perm[i], k])
                 maxInColIndex = i
             end
         end
@@ -154,18 +150,18 @@ function gaussPivotedLU(M::SparseMatrixCSC{Float64, Int64}, n::Int64, l::Int64)
         perm[maxInColIndex], perm[k] = perm[k], perm[maxInColIndex]
 
         for i in k + 1 : min(n, k + l + 1)
-            z = U[perm[i], k] / U[perm[k], k]
+            z = M![perm[i], k] / M![perm[k], k]
 
             L[perm[i], k] = z
-            U[perm[i], k] = 0.0
+            M![perm[i], k] = 0.0
 
             for j in k + 1 : min(n, k + 2 * l)
-                U[perm[i], j] -= z * U[perm[k], j]
+                M![perm[i], j] -= z * M![perm[k], j]
             end
         end
     end
 
-    return L, U, perm
+    return L, perm
 end
 
 """
@@ -247,7 +243,7 @@ Output
     x_n - result Vector
 """
 function solveWithGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}, n::Int64, l::Int64)
-    L, U = gaussLU(M, n, l)
+    L = gaussLU!(M, n, l)
         
     x_n = zeros(Float64, n)
 
@@ -262,9 +258,9 @@ function solveWithGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}
     for i in n : -1 : 1
         x_i = 0
         for j in i + 1 : min(n, i + l)
-            x_i += U[i, j] * x_n[j]
+            x_i += M[i, j] * x_n[j]
         end
-        x_n[i] = (b[i] - x_i) / U[i, i]
+        x_n[i] = (b[i] - x_i) / M[i, i]
     end
 
     return x_n
@@ -284,7 +280,7 @@ Output
     x_n - result Vector
 """
 function solveWithPivotedGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{Float64}, n::Int64, l::Int64)
-    L, U, perm = gaussPivotedLU(M, n, l)
+    L, perm = gaussPivotedLU!(M, n, l)
     
     x_n = zeros(Float64, n)
 
@@ -299,9 +295,9 @@ function solveWithPivotedGaussLU(M::SparseMatrixCSC{Float64, Int64}, b::Vector{F
     for i in n : -1 : 1
         x_i = 0
         for j in i + 1 : min(n, i + 2 * l)
-            x_i += U[perm[i], j] * x_n[j]
+            x_i += M[perm[i], j] * x_n[j]
         end
-        x_n[i] = (b[perm[i]] - x_i) / U[perm[i], i]
+        x_n[i] = (b[perm[i]] - x_i) / M[perm[i], i]
     end
 
     return x_n
